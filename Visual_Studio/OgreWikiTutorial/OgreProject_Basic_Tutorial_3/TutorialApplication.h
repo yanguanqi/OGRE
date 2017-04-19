@@ -43,6 +43,7 @@ private:
 	Ogre::TerrainGroup* mTerrainGroup;
 	Ogre::TerrainGlobalOptions* mTerrainGlobals;
 	OgreBites::Label* mInfoLabel;
+	
 };
 
 //---------------------------------------------------------------------------

@@ -18,8 +18,9 @@ http://www.ogre3d.org/wiki/
 #include "TutorialApplication.h"
 
 //---------------------------------------------------------------------------
-TutorialApplication::TutorialApplication(void)
+TutorialApplication::TutorialApplication(void): mInfoLabel(0),mTerrainGroup(0),mTerrainGlobals(0)
 {
+	
 }
 //---------------------------------------------------------------------------
 TutorialApplication::~TutorialApplication(void)
@@ -80,21 +81,58 @@ void TutorialApplication::createScene(void)
 		}
 	}
 	mTerrainGroup->freeTemporaryResources();
+	/*mSceneMgr->setSkyBox(true, "Examples/SpaceSkyBox");
+	mSceneMgr->setSkyBox(true, "Examples/SpaceSkyBox", 300);
+	mSceneMgr->setSkyBox(true, "Examples/SpaceSkyBox", 300, false);*/
+
+	// Sky Techniques
+	// mSceneMgr->setSkyBox(true, "Examples/SpaceSkyBox", 300, false);
+	mSceneMgr->setSkyDome(true, "Examples/CloudySky", 5, 8);
+	// Ogre::Plane plane;
+	// plane.d = 1000;
+	// plane.normal = Ogre::Vector3::NEGATIVE_UNIT_Y;
+
+	// mSceneMgr->setSkyPlane(
+	//   true, plane, "Examples/SpaceSkyPlane", 1500, 40, true, 1.5, 150, 150);
 }
 
 void TutorialApplication::createFrameListener()
 {
 	BaseApplication::createFrameListener();
+	mInfoLabel = mTrayMgr->createLabel(OgreBites::TL_TOP, "TerrainInfo", "", 350);
+
 }
 
 void TutorialApplication::destroyScene()
 {
-
+	OGRE_DELETE mTerrainGroup;
+	OGRE_DELETE mTerrainGlobals;
 }
 
 bool TutorialApplication::frameRenderingQueued(const Ogre::FrameEvent& fe)
 {
 	bool ret =BaseApplication::frameRenderingQueued(fe);
+	if (mTerrainGroup->isDerivedDataUpdateInProgress())
+	{
+		mTrayMgr->moveWidgetToTray(mInfoLabel, OgreBites::TL_TOP, 0);
+		mInfoLabel->show();
+
+		if (mTerrainsImported)
+			mInfoLabel->setCaption("Building terrain...");
+		else   
+			mInfoLabel->setCaption("Updating terrain...");
+	}
+	else
+	{
+		mTrayMgr->removeWidgetFromTray(mInfoLabel);
+		mInfoLabel->hide();
+
+		if (mTerrainsImported)
+		{
+			mTerrainGroup->saveAllTerrains(true);
+			mTerrainsImported = false;
+		}
+	}
 	return ret;
 }
 
@@ -184,8 +222,9 @@ void TutorialApplication::configureTerrainDefaults(Ogre::Light* light)
 	importData.minBatchSize =33;
 	importData.maxBatchSize = 65;
 
+	//加入纹理
 	importData.layerList.resize(3);
-
+	//每一个图层都有两个纹理，分别是灰度图和纹理图片
 	importData.layerList[0].worldSize=100;
 	importData.layerList[0].textureNames.push_back("dirt_grayrocky_diffusespecular.dds");
 	importData.layerList[0].textureNames.push_back("dirt_grayrocky_normalheight.dds");
